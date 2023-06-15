@@ -1,0 +1,47 @@
+Fs = 44100; % Частота дискретизації (Гц)
+duration = 20; % Тривалість запису (с)
+
+% Відкриваємо файл WAV
+filename = 'C:\Users\Denys\OneDrive\Робочий стіл\sdrsharp-x86\Audio\SDRSharp_20230511_111714Z_1700000000Hz_AF.wav';
+[data, Fs] = audioread(filename);
+
+% Відображаємо спектр сигналу
+N = length(data);
+f = (-N/2:N/2-1)*(Fs/N);
+Y = fftshift(fft(data));
+
+% Виведення амплітуди сигналу
+amplitude = abs(data);
+
+% Виведення кута радіохвилі
+wavelength = (3e8) ./ f; % Довжина хвилі (в метрах)
+theta = angle(data); % Фаза сигналу (в радіанах)
+
+% Визначення азимуту радіосигналу
+azimuth = mod(theta, 2*pi); % Приведення фази до діапазону [0, 2*pi]
+
+% Відображення спектру, амплітуди, кута радіохвилі та азимуту
+figure;
+subplot(4,1,1);
+plot(f/1e3, 10*log10(abs(Y)));
+xlabel('Frequency (kHz)');
+ylabel('Magnitude (dB)');
+title('WAV Spectrum');
+
+subplot(4,1,2);
+plot(f/1e3, amplitude);
+xlabel('Frequency (kHz)');
+ylabel('Amplitude');
+title('Signal Amplitude');
+
+subplot(4,1,3);
+plot(f/1e3, theta);
+xlabel('Frequency (kHz)');
+ylabel('Phase (radians)');
+title('Signal Phase');
+
+subplot(4,1,4);
+plot(f/1e3, azimuth);
+xlabel('Frequency (kHz)');
+ylabel('Azimuth (radians)');
+title('Signal Azimuth');
