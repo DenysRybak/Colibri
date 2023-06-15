@@ -1,0 +1,71 @@
+Fs = 44100; % Частота дискретизації (Гц)
+duration = 20; % Тривалість запису (с)
+
+% Відкриваємо файл WAV
+filename = 'C:\Users\Denys\OneDrive\Робочий стіл\sdrsharp-x86\Audio\SDRSharp_20230511_111714Z_1700000000Hz_AF.wav';
+[data, Fs] = audioread(filename);
+
+% Відображаємо спектр сигналу
+N = length(data);
+f = (-N/2:N/2-1)*(Fs/N);
+Y = fftshift(fft(data));
+
+% Визначення фази сигналу
+phase = angle(Y);
+
+% Визначення напрямку надходження сигналу
+azimuth = atan2(imag(phase), real(phase)); % Розрахунок азимуту
+
+% Перетворення азимуту в градуси
+azimuth_deg = rad2deg(azimuth);
+
+% Визначення напрямку (північ, південь, захід, схід)
+direction = cell(size(azimuth_deg));
+for i = 1:length(azimuth_deg)
+    if azimuth_deg(i) >= -45 && azimuth_deg(i) < 45
+        direction{i} = 'Північ';
+    elseif azimuth_deg(i) >= 45 && azimuth_deg(i) < 135
+        direction{i} = 'Схід';
+    elseif azimuth_deg(i) >= -135 && azimuth_deg(i) < -45
+        direction{i} = 'Захід';
+    else
+        direction{i} = 'Південь';
+    end
+end
+
+% Відображення спектру, азимуту та напрямку
+figure;
+subplot(3,1,1);
+plot(f/1e3, 10*log10(abs(Y)));
+xlabel('Frequency (kHz)');
+ylabel('Magnitude (dB)');
+title('WAV Spectrum');
+
+subplot(3,1,2);
+plot(f/1e3, azimuth_deg);
+xlabel('Frequency (kHz)');
+ylabel('Azimuth (degrees)');
+title('Signal Azimuth');
+
+
+% Відображення напрямку
+subplot(3,1,3);
+scatter(f/1e3, zeros(size(f)), 'k', 'filled'); % Додаткова лінія нуля
+hold on;
+arrowSize = 0.5; % Розмір позначки напрямку
+for i = 1:length(f)
+    if strcmp(direction{i}, 'Північ')
+        arrow = '↑';
+    elseif strcmp(direction{i}, 'Південь')
+        arrow = '↓';
+    elseif strcmp(direction{i}, 'Захід')
+        arrow = '←';
+    elseif strcmp(direction{i}, 'Схід')
+        arrow = '→';
+    end
+    text(f(i)/1e3, 0, arrow, 'FontSize', 14, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
+end
+hold off;
+xlabel('Frequency (kHz)');
+ylabel('Direction');
+title('Signal Direction');
